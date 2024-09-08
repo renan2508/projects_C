@@ -149,8 +149,13 @@ int main(){
                 printf("Nome da tarefa: ");
                 fgets(nome_tarefa[i], 255, stdin);
                 printf("Prioridade: \n[1] Baixa\n[2] Media\n[3] Alta\n[4] Extrema\n");
-                printf("Input: ");
-                scanf("%d", &nivel_prioridade[i]);
+                do{
+                    printf("Input: ");
+                    scanf("%d", &nivel_prioridade[i]);
+                    if(nivel_prioridade[i] < 1 || nivel_prioridade[i] > 4){
+                        printf("Insira uma opcao viavel.\n");
+                    }
+                }while(nivel_prioridade[i] < 1 || nivel_prioridade[i] > 4);
                 status[i] = 0;
                 tarefas_unicas++;
                 i++;
