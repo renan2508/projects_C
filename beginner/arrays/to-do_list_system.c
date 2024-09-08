@@ -171,6 +171,7 @@ int main(){
                 break;
             case 5:
                 Sorters(tarefas_unicas, nome_tarefa, nivel_prioridade, status);
+                break;
         }
     }while(opcao != 6);
     printf("Fechando programa...");
