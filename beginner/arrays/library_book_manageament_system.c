@@ -5,7 +5,7 @@
 int menu(){
     int opcao_escolhida;
     do{
-        printf("[1] Cadastrar livros\n[2] Emprestar livro\n[3] Devolver livro\n[4] Buscar livro \n[5] Todos os livros\n[6] Fechar programa\nInput:");
+        printf("[1] Cadastrar livros\n[2] Emprestar livro\n[3] Devolver livro\n[4] Buscar livro \n[5] Todos os livros\n[6] Fechar programa\n\nInput: ");
         scanf("%d", &opcao_escolhida);
         if(opcao_escolhida < 1 || opcao_escolhida > 6){
             printf("Escolha uma opcao valida.");
@@ -28,9 +28,9 @@ void list_books(char NomeLivros[100][255], char NomeAutor[100][255], int status[
         printf("Livro: %s", NomeLivros[i]);
         printf("Autor: %s", NomeAutor[i]);
         if(status[i] == 0){
-            printf("Status: em estoque.\n\n\n");
+            printf("Status: m estoque.\n\n\n");
         } else{
-            printf("Status: emprestado.\n\n\n");
+            printf("Status: Emprestado.\n\n\n");
         }
     }
 }
@@ -94,37 +94,71 @@ void return_book(int quantidade_livros_unicos, int status[], char NomeLivros[100
     printf("Livro devolvido com sucesso!\n\n");
 }
 
-void search_by_name(char NomeLivros[100][255], char NomeAutor[100][255], int quantidade_livros_unicos, int status[], bool stop_namesearch){
+void search_by_name(char NomeLivros[100][255], char NomeAutor[100][255], int quantidade_livros_unicos, int status[], bool *stop_namesearch){
+    if(quantidade_livros_unicos == 0){
+        no_books();
+        return;
+    }
+    do{
     char name[255];
     getchar();
-    int found;
+    int found = 0;
     int option;
     printf("Nome do livro: ");
     fgets(name, 255, stdin);
     for(int i = 0;i<quantidade_livros_unicos;i++){
         if(strstr(NomeLivros[i], name) != NULL){
             found = 1;
-            printf("Codigo: %d\nNome: %s\nAutor: %s", i+1, NomeLivros[i], NomeAutor[i]);
+            printf("\nCodigo: %d\nNome: %sAutor: %s", i+1, NomeLivros[i], NomeAutor[i]);
             if(status[i] == 0){
-                printf("Em estoque.\n");
+                printf("Em estoque.\n\n");
             } else{
-                printf("Emprestado.\n");
+                printf("Emprestado.\n\n");
             }
         }
     }
     if(found != 1){
-        printf("Nao a resultados a pesquisa.");
+        printf("Nao a resultados a pesquisa.\n");
     }
     printf("Pesquisar outro nome ou sair? \n[1] Pesquisar outro nome \n[2] Sair\n");
     scanf("%d", &option);
     if(option == 2){
-        stop_namesearch = true;
-    }
+        *stop_namesearch = true;
+    }}while(*stop_namesearch == false);
 }
 
-/*oid search_by_author(){
-
-}*/
+void search_by_author(char NomeLivros[100][255], char NomeAutor[100][255], int status[], int quantidade_livros_unicos, bool *stop_authorsearch){
+    if(quantidade_livros_unicos == 0){
+        no_books();
+        return;
+    }
+    do{
+        int found = 0;
+        char author[255];
+        getchar();
+        fgets(author, 255, stdin);
+        for(int i = 0;i<quantidade_livros_unicos;i++){
+            if(strstr(NomeAutor[i], author) != NULL){
+                found = 1;
+                printf("Codigo: %d\nNome: %sAutor: %s\n\n", i+1, NomeLivros[i], NomeAutor[i]);
+                if(status[i] == 0){
+                    printf("Em estoque.\n\n");
+                } else{
+                    printf("Emprestado.\n\n");
+                }
+            }
+        }
+        if(found == 0){
+            printf("Nao se foi encontrado o autor %s", author);
+        }
+        printf("[1] Continuar busca\n[2] Sair");
+        int option;
+        scanf("%d", &option);
+        if(option == 2){
+            *stop_authorsearch = true;
+        }
+    }while(*stop_authorsearch == false);
+}
 
 int main(){
     char NomeLivros[100][255];
@@ -155,16 +189,18 @@ int main(){
                 break;
             case 4:
                 do{
-                    printf("\n\n[1] Buscar pelo nome do livro\n\n[2] Buscar pelo autor \n\n[3] Parar busca");
+                    printf("\n\n[1] Buscar pelo nome do livro\n\n[2] Buscar pelo autor \n\n[3] Parar busca\n");
                     scanf("%d", &busca_opcao);
                     if(busca_opcao == 1){
                         do{
-                            search_by_name(NomeLivros, NomeAutor, quantidade_livros_unicos, status, stop_namesearch);
+                            search_by_name(NomeLivros, NomeAutor, quantidade_livros_unicos, status, &stop_namesearch);
                         }while(stop_namesearch == false);
+                    } else if(busca_opcao == 2){
+                        do{
+                            search_by_author(NomeLivros, NomeAutor, status, quantidade_livros_unicos, &stop_authorsearch);
+                        }while(stop_authorsearch == false);
                     } else{
                         stopSearch = true;
-                        printf("Saindo...\n\n");
-                        break;
                     }
                 }while(stopSearch == false);
                 break;
@@ -173,6 +209,6 @@ int main(){
                 break;
         }
     }while(opcao != 6);
-    
+    printf("\n\nSaindo...");
     return 0;
 }
