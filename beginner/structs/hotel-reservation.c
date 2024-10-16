@@ -5,8 +5,8 @@
 
 typedef struct{
     char name[100];
-    int phone_number;
-    int cpf;
+    long long int phone_number;
+    long long int cpf;
     bool signed_up;
 } Client;
 
@@ -24,7 +24,7 @@ typedef struct{
 // 4 = to define
 
 typedef struct{
-    Client client;
+    Client client;                              
     Bedroom bedroom;
     int check_in_date;
     int check_out_date;
@@ -45,7 +45,7 @@ int menu(){
 
 
 
-int list_bedrooms(Bedroom bed_arr[], int quartos_unicos){
+int list_everything(Bedroom bed_arr[], int quartos_unicos, int signed_up_clients, Client *client_array){
     printf("\nBedrooms Information\n\n");
     for(int i = 0;i < quartos_unicos; i++){
         if(bed_arr[i].set == true){
@@ -70,11 +70,44 @@ int list_bedrooms(Bedroom bed_arr[], int quartos_unicos){
             continue;
         }
     }
+    if(signed_up_clients != 0){
+        printf("\n\n---- Clients Information ----\n\n");
+        for(int i = 0;i<signed_up_clients;i++){
+            printf("Name: %s", client_array[i].name);
+            printf("CPF: %lld\n", client_array[i].cpf);
+            printf("Phone-Number: %lld\n", client_array[i].phone_number);
+        }
+    } else{
+        printf("\n\nNo signed-up clients yet :(\n\n");
+    }
     return 0;
 }
 
-void add_bedroom(Bedroom bed_arra[], int *quartos_unicos){
-    list_bedrooms(bed_arra, *quartos_unicos);
+void sign_up(Client **client_arr, int *signed_up_clients){
+    *client_arr = realloc(*client_arr, (*signed_up_clients + 1) * sizeof(Client));
+    if (*client_arr == NULL) {
+        printf("Error.\n");
+        exit(1);
+    }
+    
+    Client *new_client = &(*client_arr)[*signed_up_clients];
+    printf("Client Sign-Up\n");
+    getchar();
+    printf("Name: ");
+    fgets(new_client->name, 255, stdin);
+    //scanf(" %[^\n]", new_client->name);
+    printf("Phone-Number (Full): ");
+    scanf("%lld", &new_client->phone_number);
+    printf("CPF: ");
+    scanf("%lld", &new_client->cpf);
+    new_client->signed_up = true;
+    (*signed_up_clients)++;
+
+    printf("Congrats! You're now signed up.\n");
+}
+
+void add_bedroom(Bedroom bed_arra[], int *quartos_unicos, int signed_up_clients, Client *client_array){
+    list_everything(bed_arra, *quartos_unicos, signed_up_clients, client_array);
     int option;
     do{
         printf("\nChoose which bedroom to modify, between 1 and %d: ", *quartos_unicos); 
@@ -96,36 +129,16 @@ void add_bedroom(Bedroom bed_arra[], int *quartos_unicos){
     }while(bed_arra[option].type < 1 || bed_arra[option].type > 3);
     bed_arra[option].set = true;
 }
-
-void sign_up(Client **client_arr, int *signed_up_clients){
-    *client_arr = realloc(*client_arr, (*signed_up_clients + 1) * sizeof(Client));
-    if (*client_arr == NULL) {
-        printf("Error.\n");
-        exit(1);
-    }
-    
-    Client *new_client = &(*client_arr)[*signed_up_clients];
-    printf("Client Sign-Up\n");
-    printf("Name: ");
-    scanf(" %[^\n]", new_client->name);
-    printf("Phone-Number (Full): ");
-    scanf("%d", &new_client->phone_number);
-    printf("CPF: ");
-    scanf("%d", &new_client->cpf);
-    
-    new_client->signed_up = true;
-    (*signed_up_clients)++; 
-    printf("Congrats! You're now signed up.\n");
-}
-
+//vai fazer array dinamica kkkk sfd
 void make_reserve(Bedroom bed_arr[], int size_arr){
     int option;
     printf("\n\n----Available Reserves ----\n\n");
     for(int i = 0;i<size_arr;i++){
         if(bed_arr[i].status == false && bed_arr[i].set == true){
             int type = bed_arr[i].type;
-            printf("Bedroom %d\n", i+1);
+            printf("\n\nBedroom %d\n", i+1);
             printf("Number: %d\n", bed_arr[i].number);
+            type--;
             if(type == 2){
                 printf("Type: Suit\n");
             } else if(type == 1){
@@ -152,6 +165,63 @@ void make_reserve(Bedroom bed_arr[], int size_arr){
     }while(check == false);
     bed_arr[option].status = true;
 }
+//aqui tbm vai puxar a array
+void cancel_reserve(Bedroom bed_arr[], int size_arr){
+    int option;
+    int set_bedrooms=0;
+    printf("---- Reservation Cancelation ----");
+    for(int i = 0;i<size_arr;i++){
+        if(bed_arr[i].status == true){
+            set_bedrooms++;
+            printf("\n\nBedroom %d\n", i+1);
+            printf("Number: %d\n", bed_arr[i].number);
+            switch(bed_arr[i].type){
+                case 2:
+                    printf("Suit.\n");
+                    break;
+                case 1:
+                    printf("Couple.\n");
+                    break;
+                case 0:
+                    printf("Single.\n");
+                    break;
+                default:
+                    printf("\n\n---- Error. Report to developers. ----\n");
+                    break;
+            }
+            printf("Type this code to cancel this reservation: %d\n", i+1);
+        }
+    }
+    if(!set_bedrooms){
+        printf("\n\nThere are no bedrooms configured. Try setting some!\n\n");
+    } else{
+        bool leave = false;
+        do{
+            printf("\nOption to cancel reservation: ");
+            scanf("%d", &option);
+            if(option < 1 || option > 5){
+                printf("Choose an option between 1 and 5.\n");
+            } else{
+                option--;
+                if(!bed_arr[option].set){
+                    printf("This bedroom is not set.\n");
+                } else{
+                    if(!bed_arr[option].status){
+                        printf("This bedroom is not reserved.\n");
+                    } else{
+                        bed_arr[option].status = false;
+                        leave = true;
+                        printf("\n\nThe reserve cancelation for bedroom %d was a sucess! ", option);
+                    }
+                }
+            }
+        }while(!leave);
+    }
+}
+
+void search_by(){
+
+}
 
 int main(){
 
@@ -173,7 +243,7 @@ int main(){
         option = menu();
         switch(option){
             case 1:
-                add_bedroom(bed_arr, &quartos_unicos);
+                add_bedroom(bed_arr, &quartos_unicos, signed_up_clients, client_arr);
                 break;
             case 2:
                 sign_up(&client_arr, &signed_up_clients);
@@ -182,10 +252,14 @@ int main(){
                 make_reserve(bed_arr, size_arr);
                 break;
             case 4:
-                list_bedrooms(bed_arr, quartos_unicos);
+                list_everything(bed_arr, quartos_unicos, signed_up_clients, client_arr);
+                break;
+            case 5:
+                cancel_reserve(bed_arr, size_arr);
                 break;
             case 7:
                 printf("Leaving program....");
+                break;
         }
     }while(option != 7);
     free(client_arr);
