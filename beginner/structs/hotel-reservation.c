@@ -131,7 +131,7 @@ void add_bedroom(Bedroom bed_arra[], int *quartos_unicos, int signed_up_clients,
 }
 //vai fazer array dinamica kkkk sfd
 void make_reserve(Reservation **reserves_arr[], int *reserves_count, Bedroom bed_arr[], int size_arr, Client client_arr[], int signed_up_clients){
-    *reserves_arr = realloc(*reserves_arr, (*reserves_count + 1) * sizeof(Client));
+    *reserves_arr = realloc(*reserves_arr, (*reserves_count + 1) * sizeof(Reservation));
     if (*reserves_arr == NULL) {
         printf("Error.\n");
         exit(1);
@@ -179,7 +179,7 @@ void make_reserve(Reservation **reserves_arr[], int *reserves_count, Bedroom bed
     Client *selected_client;
     do{
         printf("Choose a client from the list (code): ");
-        scanf("%d", client_choosing_option);
+        scanf("%d", &client_choosing_option);
         client_choosing_option--;
         if(client_choosing_option < 0 || client_choosing_option > signed_up_clients){
             printf("Choose a client that's it's code is from 0 to %d", signed_up_clients);
@@ -195,7 +195,7 @@ void make_reserve(Reservation **reserves_arr[], int *reserves_count, Bedroom bed
     bool valid_year = false;
     do{
         printf("\nYear: ");
-        scanf("%d", new_reservation->check_in_day[2]);
+        scanf("%d", &new_reservation->check_in_day[2]);
         if(new_reservation->check_in_day[2] < 2024){
             printf("Invalid year.");
             if(new_reservation->check_in_day[2] > 2026){
@@ -275,7 +275,7 @@ void cancel_reserve(Bedroom bed_arr[], int size_arr){
         do{
             printf("\nOption to cancel reservation: ");
             scanf("%d", &option);
-            if(option < 1 || option > 5){
+            if(option < 1 || option > size_arr){
                 printf("Choose an option between 1 and 5.\n");
             } else{
                 option--;
@@ -339,6 +339,7 @@ int main(){
                 break;
             case 6:
                 search_by();
+                break;
             case 7:
                 printf("Leaving program....");
                 break;
