@@ -1,27 +1,22 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
 typedef struct{
     char name[100];
-    long long int phone_number;
-    long long int cpf;
+    long int phone_number;
+    long int cpf;
     bool signed_up;
 } Client;
 
 typedef struct{
     int number;
-    int type;
+    int type; // [4] to define - [2] suit - [1] couple - [0] single
     bool status;
     bool set;
 } Bedroom;
-
-// types
-// 0 = solo
-// 1 = married
-// 2 = suit
-// 4 = to define
 
 typedef struct{
     Client client;                              
@@ -74,8 +69,8 @@ int list_everything(Bedroom bed_arr[], int quartos_unicos, int signed_up_clients
         printf("\n\n---- Clients Information ----\n\n");
         for(int i = 0;i<signed_up_clients;i++){
             printf("Name: %s", client_array[i].name);
-            printf("CPF: %lld\n", client_array[i].cpf);
-            printf("Phone-Number: %lld\n", client_array[i].phone_number);
+            printf("CPF: %ld\n", client_array[i].cpf);
+            printf("Phone-Number: %ld\n", client_array[i].phone_number);
         }
     } else{
         printf("\n\nNo signed-up clients yet :(\n\n");
@@ -97,16 +92,16 @@ void sign_up(Client **client_arr, int *signed_up_clients){
     fgets(new_client->name, 255, stdin);
     //scanf(" %[^\n]", new_client->name);
     printf("Phone-Number (Full): ");
-    scanf("%lld", &new_client->phone_number);
+    scanf("%ld", &new_client->phone_number);
     printf("CPF: ");
-    scanf("%lld", &new_client->cpf);
+    scanf("%ld", &new_client->cpf);
     new_client->signed_up = true;
     (*signed_up_clients)++;
 
     printf("Congrats! You're now signed up.\n");
 }
 
-void add_bedroom(Bedroom bed_arra[], int *quartos_unicos, int signed_up_clients, Client *client_array){
+void add_bedroom(Bedroom bed_arra[], int *quartos_unicos, int signed_up_clients, Client *client_array, int *set_bedrooms){
     list_everything(bed_arra, *quartos_unicos, signed_up_clients, client_array);
     int option;
     do{
@@ -128,10 +123,15 @@ void add_bedroom(Bedroom bed_arra[], int *quartos_unicos, int signed_up_clients,
         }
     }while(bed_arra[option].type < 1 || bed_arra[option].type > 3);
     bed_arra[option].set = true;
+    (*set_bedrooms)++;
 }
-//vai fazer array dinamica kkkk sfd
-void make_reserve(Reservation **reserves_arr[], int *reserves_count, Bedroom bed_arr[], int size_arr, Client client_arr[], int signed_up_clients){
-    *reserves_arr = realloc(*reserves_arr, (*reserves_count + 1) * sizeof(Reservation));
+
+void make_reserve(Reservation **reserves_arr, int *reserves_count, Bedroom bed_arr[], int size_arr, Client client_arr[], int signed_up_clients, int *set_bedrooms){
+    if(*set_bedrooms == 0 || signed_up_clients == 0){
+        printf("No Bedrooms or clients have been set/signed to make a reservation.\n\n");
+    } else{
+        (*reserves_count)++;
+        *reserves_arr = realloc(*reserves_arr, (*reserves_count + 1) * sizeof(Reservation));
     if (*reserves_arr == NULL) {
         printf("Error.\n");
         exit(1);
@@ -163,7 +163,7 @@ void make_reserve(Reservation **reserves_arr[], int *reserves_count, Bedroom bed
             printf("Choose a number correctly.\n\n");
         }
         if(bed_arr[option].set == true && bed_arr[option].status == false){
-            printf("\\You're almost there!\n\nSelecting Bedroom %d:\n\n", option+1);
+            printf("\n\nYou're almost there!\n\nSelecting Bedroom %d:\n\n", option+1);
             valid_bedroom=true;
             bed_arr[option].status = true;
             selected_bedroom = &bed_arr[option];
@@ -196,16 +196,11 @@ void make_reserve(Reservation **reserves_arr[], int *reserves_count, Bedroom bed
     do{
         printf("\nYear: ");
         scanf("%d", &new_reservation->check_in_day[2]);
-        if(new_reservation->check_in_day[2] < 2024){
-            printf("Invalid year.");
-            if(new_reservation->check_in_day[2] > 2026){
-                printf("\nThat's too much in the future!\n");
-            } else{
+        if(new_reservation->check_in_day[2] < 2024 || new_reservation->check_in_day[2] > 2026){
+            printf("Invalid year.\n\n");
+        }   else{
                 valid_year = true;
             }
-        } else{
-            valid_year = true;
-        }
     }while(!valid_year);
     bool valid_month = false;
     do{
@@ -239,64 +234,284 @@ void make_reserve(Reservation **reserves_arr[], int *reserves_count, Bedroom bed
                 valid_day = true;
             }
         }while(!valid_day);
+    } else{
+        do{
+            printf("Day: ");
+            scanf("%d", &new_reservation->check_in_day[0]);
+            if(new_reservation->check_in_day[0] <= 0 || new_reservation->check_in_day[0] > 30){
+                printf("Invalid day.");
+            } else{
+                valid_day = true;
+            }
+        }while(!valid_day);
     }
+    valid_year = false;
+    valid_month = false;
+    valid_day = false;
+    printf("\n\n---- Check-out Date ----\n\n");
+        do{
+            printf("Year: ");
+            scanf("%d", &new_reservation->check_out_date[2]);
+            if(new_reservation->check_out_date[2] < 2024 || new_reservation->check_out_date[2] < new_reservation->check_in_day[2]){
+                printf("Invalid year.");
+            } else{
+                valid_year = true;
+            }
+        }while(!valid_year);
+        do{
+            printf("Month: ");
+            scanf("%d", &new_reservation->check_out_date[1]);
+            if(new_reservation->check_out_date[1] <= 0 || new_reservation->check_out_date[1] > 12){
+                printf("\nInvalid month.\n\n");
+            } else{
+                valid_month = true;
+            }
+        }while(!valid_month);
+        int month_ = new_reservation->check_out_date[1];
+        if(month_ == 4 || month_ == 5 || month_ == 9 || month_ == 11){
+            do{
+                printf("Day: ");
+                scanf("%d", &new_reservation->check_out_date[0]);
+                if(new_reservation->check_out_date[0] <= 0 || new_reservation->check_out_date[0] > 31){
+                    printf("\nInvalid day.\n\n");
+                } else{
+                    valid_day = true;
+                }
+            }while(!valid_day);
+        } else if(month_ == 2){
+            do{
+                printf("Day: ");
+                scanf("%d", &new_reservation->check_out_date[0]);
+                if(new_reservation->check_out_date[0] <= 0 || new_reservation->check_out_date[0] > 29){
+                    printf("Invalid day.\n");
+                } else{
+                    valid_day = true;
+                }
+            }while(!valid_day);
+        } else{
+            do{
+                printf("Day: ");
+                scanf("%d", &new_reservation->check_out_date[0]);
+                if(new_reservation->check_out_date[0] <= 0 || new_reservation->check_out_date[0] > 30){
+                    printf("Invalid day.\n");
+                } else{
+                    valid_day = true;
+                }
+            }while(!valid_day);
+        }
+    }    
 }
 
-void cancel_reserve(Bedroom bed_arr[], int size_arr){
-    int option;
-    int set_bedrooms=0;
-    printf("---- Reservation Cancelation ----");
-    for(int i = 0;i<size_arr;i++){
-        if(bed_arr[i].status == true){
-            set_bedrooms++;
-            printf("\n\nBedroom %d\n", i+1);
-            printf("Number: %d\n", bed_arr[i].number);
-            switch(bed_arr[i].type){
+void cancel_reservation(Reservation *reserves_arr, int reserves_count, Bedroom bed_arr[], int size_array){
+    if(reserves_count == 0){
+        printf("\n\nThere are no reservations to cancel.\n\n");
+    } else{
+        int option;
+        printf("\n\n---- Current Reservations ----\n\n");
+        for(int i = 0;i < reserves_count;i++){
+            printf("Reservation %d", i+1);
+            printf("\nBedroom number: %d", reserves_arr[i].bedroom.number);
+            printf("Type: ");
+            switch(reserves_arr[i].bedroom.type){
                 case 2:
-                    printf("Suit.\n");
+                    printf("Suite.");
                     break;
-                case 1:
-                    printf("Couple.\n");
+                case 1: 
+                    printf("Couple.");
                     break;
                 case 0:
-                    printf("Single.\n");
+                    printf("Single.");
                     break;
                 default:
-                    printf("\n\n---- Error. Report to developers. ----\n");
+                    printf("Error. Report to developers.");
                     break;
             }
-            printf("Type this code to cancel this reservation: %d\n", i+1);
+            printf("\nClient's name: %s", reserves_arr[i].client.name);
+            printf("\nClient's phone-number: %ld", reserves_arr[i].client.phone_number);
+            printf("\nCPF: %ld\n\n", reserves_arr[i].client.cpf);
+            printf("\nCheck-in Date: %d/%d/%d", reserves_arr[i].check_in_day[0], reserves_arr[i].check_in_day[1], reserves_arr[i].check_in_day[2]);
+            printf("\nCheck-out Date: %d/%d/%d", reserves_arr[i].check_out_date[0], reserves_arr[i].check_out_date[1], reserves_arr[i].check_out_date[2]);
         }
-    }
-    if(!set_bedrooms){
-        printf("\n\nThere are no bedrooms configured. Try setting some!\n\n");
-    } else{
-        bool leave = false;
+        bool valid_reserv_cancel_op;
         do{
-            printf("\nOption to cancel reservation: ");
+            printf("Type the reservation code to leave: ");
             scanf("%d", &option);
-            if(option < 1 || option > size_arr){
-                printf("Choose an option between 1 and 5.\n");
+            option--;
+
+            if(option < 0 || option >= reserves_count){
+                printf("\nInvalid number. \n\n");
             } else{
-                option--;
-                if(!bed_arr[option].set){
-                    printf("This bedroom is not set.\n");
-                } else{
-                    if(!bed_arr[option].status){
-                        printf("This bedroom is not reserved.\n");
-                    } else{
-                        bed_arr[option].status = false;
-                        leave = true;
-                        printf("\n\nThe reserve cancelation for bedroom %d was a sucess! ", option);
+                printf("The cancelation for the reservation on bedroom %d was a sucess.\n", option);
+
+                for(int i = 0;i < size_array;i++){
+                    if(reserves_arr[i].bedroom.number == bed_arr[i].number){
+                        bed_arr[i].status = false;
                     }
                 }
+                for(int i = option;i<reserves_count-1;i++){
+                    reserves_arr[i] = reserves_arr[i+1];
+                }
+                reserves_count--;
+                valid_reserv_cancel_op = true;
             }
-        }while(!leave);
+        }while(!valid_reserv_cancel_op);
     }
 }
 
-void search_by(){
+void search_client(Client client_arr[], int signed_up_clients){
+    char name_input[255];
+    bool leave_search = false;
+    char answer;
+    do{
+        printf("Name: ");
+        fgets(name_input, 255, stdin);
+        for(int i = 0;i < signed_up_clients;i++){
+            if(strstr(client_arr[i].name, name_input) != NULL){
+                printf("Client Name: %s", client_arr[i].name);
+                printf("\nPhone-Number: %ld", client_arr[i].phone_number);
+                printf("\nCPF: %ld\n\n", client_arr[i].cpf);
+            }
+        }
+        printf("\n\nLeave? [Y/N]");
+        scanf(" %c", &answer);
+        if(tolower(answer) == 'y'){
+            leave_search = true;
+        }
+        printf("\n\n");
+    }while(!leave_search);
+}
 
+void search_bed_num(Bedroom bed_arr[], int size_arr){
+    int number;
+    char answer;
+
+    bool valid_bednum_input = false;
+    bool found_something;
+    bool valid_input = false;
+
+    do{
+        printf("Number: ");
+        found_something = false;
+        scanf("%d", &number);
+        for(int i = 0;i < size_arr;i++){
+            if(bed_arr[i].number == number){
+                printf("\n\nBedroom %d\n", i+1);
+                found_something = true;
+                printf("Number: %d\n", bed_arr[i].number);
+                printf("Status: ");
+                if(bed_arr[i].status){
+                    printf("Reserved.\n");
+                } else{
+                    printf("Free.\n");
+                }
+                printf("Type: ");
+                switch(bed_arr[i].type){
+                    case 0:
+                        printf("Single.\n");
+                        break;
+                    case 1:
+                        printf("Couple.\n");
+                        break;
+                    case 2:
+                        printf("Suite.\n");
+                        break;
+                    default:    
+                        printf("\n\nEROR. REPORT TO DEVELOPERS.\n\n");
+                        break;
+                }
+            } else{
+                continue;
+            }
+        }
+        
+    }while(!valid_bednum_input);
+
+    if(found_something == false){
+        printf("\n\nNothing was found.\n\n");
+    }
+
+    printf("\n\nContinue Search? [Y/N]");
+    
+    do{
+        printf("\n ->:");
+        scanf(" %c", &answer);
+        if(tolower(answer) != 'y' || tolower(answer) != 'n'){
+            printf("\n\nInvalid input.\n\n");
+        } else{
+            valid_input = true;
+        }
+    }while(!valid_input);
+}
+
+void search_resv(Reservation *reserves_arr[], int reserves_count){
+    for(int i = 0;i < reserves_count; i++){
+        printf("\n\n---- Reservation %d Information ----\n\n", i+1);
+        // listar bedrooms, listar clientes, listar check-in e checkout
+        printf("Bedroom: %d", reserves_arr[i]->bedroom.number); 
+        printf("--- Type: ");
+        switch(reserves_arr[i]->bedroom.type){
+            case 0:
+                printf("Single.\n\n");
+                break;
+            case 1:
+                printf("Couple.\n\n");
+                break;
+            case 2:
+                printf("Suite.\n\n");
+                break;
+            default:
+                printf("\n\n\n\n\nError. Report to developers.\n\n\n\n");
+                break;
+        }
+        printf("\nClient Information\n");
+        printf("Name: %s", reserves_arr[i]->client.name);
+        printf("CPF: %ld", reserves_arr[i]->client.cpf);
+        printf("Phone-Number: %ld", reserves_arr[i]->client.phone_number);
+        printf("\n\nCheck-in & Check-out\n\n");
+        printf("Check-in : %d/%d/%d\n", reserves_arr[i]->check_in_day[0], reserves_arr[i]->check_in_day[1], reserves_arr[i]->check_in_day[2]);
+        printf("Check-out: %d/%d/%d\n\n", reserves_arr[i]->check_out_date[0], reserves_arr[i]->check_out_date[1], reserves_arr[i]->check_out_date[2]);
+    }
+}
+
+
+void search(Client client_arr[], int signed_up_clients, Bedroom bed_arr[], int size_arr, int set_bedroom, Reservation reserves_arr[], int reserves_count){
+    int option;
+    do{
+        printf("\n\n---- Search Menu ----\n\n[1] Search Clients\n[2] Search Bedrooms\n[3] Search Reserves\n[4] Leave Search\n\nOption: ");
+        scanf("%d", &option);
+        if(option <= 0 || option > 3){
+            printf("\n\nInvalid input. Try again.\n\n");
+        }
+        switch(option){
+            case 1:
+                if(signed_up_clients){
+                    search_client(client_arr, signed_up_clients);
+                } else{
+                    printf("\n\nNo clients to search.\n\n");
+                }
+                break;
+            case 2:
+                if(set_bedroom){
+                    search_bed_num(bed_arr, size_arr);
+                } else{
+                    printf("\n\nNo bedrooms have been configured.\n\n");
+                }
+                break;
+            case 3:
+                if(reserves_count){
+                    search_resv(&reserves_arr, reserves_count);
+                } else{
+                    printf("\n\nThere are no reservations to search for.\n\n");
+                }
+                break;
+            case 4:
+                printf("\n\nLeaving....\n\n");
+                break;
+            default:
+                printf("Bye.");
+            
+        }
+    }while(option != 4);
 }
 
 int main(){
@@ -318,27 +533,28 @@ int main(){
     }
 
     int quartos_unicos = 5;
+    int set_bedrooms = 0;
     int option;
     do{
         option = menu();
         switch(option){
             case 1:
-                add_bedroom(bed_arr, &quartos_unicos, signed_up_clients, client_arr);
+                add_bedroom(bed_arr, &quartos_unicos, signed_up_clients, client_arr, &set_bedrooms);
                 break;
             case 2:
                 sign_up(&client_arr, &signed_up_clients);
                 break;
             case 3:
-                make_reserve(&reserves_arr, &reserves_count,bed_arr, size_arr, client_arr, signed_up_clients);
+                make_reserve(&reserves_arr, &reserves_count, bed_arr, size_arr, client_arr, signed_up_clients, &set_bedrooms);
                 break;
             case 4:
                 list_everything(bed_arr, quartos_unicos, signed_up_clients, client_arr);
                 break;
             case 5:
-                cancel_reserve(bed_arr, size_arr);
+                cancel_reservation(reserves_arr, reserves_count, bed_arr, size_arr);
                 break;
             case 6:
-                search_by();
+                search(client_arr, signed_up_clients, bed_arr, size_arr, set_bedrooms,reserves_arr, reserves_count);
                 break;
             case 7:
                 printf("Leaving program....");
