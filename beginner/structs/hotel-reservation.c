@@ -85,11 +85,12 @@ void sign_up(Client **client_arr, int *signed_up_clients){
     }
     
     Client *new_client = &(*client_arr)[*signed_up_clients];
+    
     printf("\n\n\n\n\n\n\n\n\033[1;33m==== Client Sign-Up ====\033[m \n\n");
     getchar();
     printf("Name: ");
     fgets(new_client->name, 100, stdin);
-    //scanf(" %[^\n]", new_client->name);
+   
     printf("Phone-Number (Full): ");
     fgets(new_client->phone_number, 100, stdin);
     printf("CPF: ");
