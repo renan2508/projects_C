@@ -8,12 +8,12 @@ void printBoard(char board[3][3]){
     for(i = 0;i<3;i++){
         for(j = 0;j<3;j++){
             if(j != 2){
-                printf("%c|", board[i][j]);
+                printf("  %c  |", board[i][j]);
             } else{
-                printf("%c", board[i][j]);
+                printf("  %c", board[i][j]);
             }   
         }
-        printf("\n");
+        printf("\n-----------------\n");
     }
     printf("\n\n");
 }
@@ -23,42 +23,15 @@ bool valid_position(char board[3][3], int position){
         return false;
     }
     switch(position){
-        case 1:
-            if(board[0][0] != '-'){
-                return false;
-            } break;
-        case 2:
-            if(board[0][1] != '-'){
-                return false;
-            } break;
-        case 3:
-            if(board[0][2] != '-'){
-                return false;
-            } break;
-        case 4:
-            if(board[1][0] != '-'){
-                return false;
-            } break;
-        case 5:
-            if(board[1][1] != '-'){
-                return false;
-            } break;
-        case 6:
-            if(board[1][2] != '-'){
-                return false;   
-            } break;
-        case 7:
-            if(board[2][0] != '-'){
-                return false;
-            } break;
-        case 8:
-            if(board[2][1] != '-'){
-                return false;
-            } break;
-        case 9:
-            if(board[2][2] != '-'){
-                return false;
-            } break;
+        case 1: if(board[0][0] != '-'){return false;} break;
+        case 2: if(board[0][1] != '-'){return false;} break;
+        case 3: if(board[0][2] != '-'){return false;} break;
+        case 4: if(board[1][0] != '-'){return false;} break;
+        case 5: if(board[1][1] != '-'){return false;} break;
+        case 6: if(board[1][2] != '-'){return false;} break;
+        case 7: if(board[2][0] != '-'){return false;} break;
+        case 8: if(board[2][1] != '-'){return false;} break;
+        case 9: if(board[2][2] != '-'){return false;} break;
         default:
             return true;
     }
@@ -128,28 +101,45 @@ bool check_win(char board[3][3]){
     int i = 0;
     //check for p1 & p2 win through for-loops
 
-    //straight lines
+    // straight lines
     for(i = 0; i < 3; i++){
         if(board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != '-'){
             return true;
         }
     }
-    //collumns
+    // collumns
     for(i = 0;i<3;i++){
         if(board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][0] != '-'){
             return true;
         }
     }
 
-    //diagonals
+    // diagonals
     if((board[1][1] == board[0][2] && board[0][2] == board[2][0] && board[1][1] != '-') || (board[1][1] == board[0][0] && board[0][0] == board[2][2] && board[1][1] != '-')){
         return true;
     }
     return false;
 }
 
+bool check_draw(char board[3][3]){
+    int count = 0;
+    for(int i = 0;i<3;i++){
+        for(int j = 0;j<3;j++){
+            if(board[i][j] != '-'){
+                count++;
+            }
+        }
+    }
+    if(count == 9){
+        return true;
+    } else{
+        return false;
+    }
+}
+
 int main(){
     bool game_won = false;
+    bool game_draw = false;
     int turn = 1; // 1 -> p1; 2 -> p2;
     int plays = 0; //plays > 3 -> check for win idk
     char board[3][3] = {
@@ -164,7 +154,6 @@ int main(){
 
     while(!game_won){
 
-        //check_draw();
         if(plays >= 5){
             game_won = check_win(board);
         }
@@ -172,6 +161,21 @@ int main(){
             printBoard(board);
             printf("Someone won!\n\n");
         } else{
+            game_draw = check_draw(board);
+            if(game_draw){
+                printf("\n\nDraw!\n\nReseting board...\n\n\n\n");
+                plays = 0;
+                if(turn == 1){
+                    turn = 2;
+                } else{
+                    turn = 1;
+                }
+                for(int i = 0;i<3;i++){
+                    for(int j = 0;j<3;j++){
+                        board[i][j] = '-';
+                    }
+                }
+            }
             playBoard(board, &turn, &plays);
         }
     }
