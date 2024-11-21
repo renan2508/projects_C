@@ -1,2 +1,2 @@
-# projects_C
+# ProjectsC
  Projects using the C programming language
